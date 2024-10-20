@@ -1,0 +1,5 @@
+data/
+experiments/
+querysat_pytorch.egg-info/
+!querysat_pytorch/data/
+*.pyc
