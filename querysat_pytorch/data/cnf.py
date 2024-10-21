@@ -64,7 +64,7 @@ class CNFDataset(Dataset):
     @property
     def raw_file_names(self):
         return [f"{i}.cnf" for i in range(self.len())]
-    
+
     @property
     def processed_file_names(self):
         return [f"{i}.pt" for i in range(self.len())]
@@ -80,4 +80,4 @@ class CNFDataset(Dataset):
             raise ValueError
 
     def get(self, idx: int):
-        return torch.load(self.processed_paths[idx])
+        return torch.load(os.path.join(self.processed_dir, f"{idx}.pt"))
