@@ -16,8 +16,11 @@ cd ../
 
 ## Prepare data
 
+Each dataset may take several hours to prepare.
+
 ```shell
-python main.py generate --dataset 3sat
+python main.py prepare --dataset ksat
+python main.py prepare --dataset 3sat
 python main.py prepare --dataset 3clique
 python main.py prepare --dataset kcoloring
 ```
