@@ -1,16 +1,9 @@
 from cnfgen.formula.cnf import CNF
-import os
 import subprocess
 
 
-def kissat_solve(formula: CNF) -> bool | None:
-    # dump CNF to a temp file and solve
-    temp_filename = f"{os.getpid()}.cnf"
-    formula.to_file(temp_filename)
-    output = subprocess.run(["./kissat/build/kissat", temp_filename], capture_output=True, text=True)
-    os.remove(temp_filename)
-
-    # parse the result
+def run_external_solver(formula: CNF) -> bool | None:
+    output = subprocess.run(["./binary/treengeling_linux"], input=formula.to_dimacs(), capture_output=True, text=True)
     result = [line for line in output.stdout.split("\n") if line.startswith("s")]
     if len(result) != 1:
         return None

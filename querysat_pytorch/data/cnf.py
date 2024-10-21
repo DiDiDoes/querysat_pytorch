@@ -2,12 +2,13 @@ from argparse import Namespace
 from cnfgen.formula.cnf import CNF
 import numpy as np
 import os
+from pysat.solvers import Glucose4
 from tqdm import tqdm
 
 import torch
 from torch_geometric.data import Dataset, HeteroData
 
-from querysat_pytorch.data.solve import kissat_solve
+from querysat_pytorch.data.solve import run_external_solver
 
 
 class CNFDataset(Dataset):
@@ -21,7 +22,12 @@ class CNFDataset(Dataset):
     def generate_sat_instance(self) -> CNF:
         while True:
             F = self.generate_one_instance()
-            if kissat_solve(F) is True:
+            if F.number_of_variables() > 200:
+                is_sat = run_external_solver(F)
+            else:
+                with Glucose4(bootstrap_with=F.clauses()) as solver:
+                    is_sat = solver.solve()
+            if is_sat:
                 return F
 
     def generate_one_instance(self) -> CNF:
@@ -29,8 +35,9 @@ class CNFDataset(Dataset):
 
     def download(self):
         for raw_path in tqdm(self.raw_paths, desc=f"Generate {self.name}-{self.split}"):
-            F = self.generate_sat_instance()
-            F.to_file(raw_path)
+            if not os.path.exists(raw_path):
+                F = self.generate_sat_instance()
+                F.to_file(raw_path)
 
 
     # processing: CNF -> graph
