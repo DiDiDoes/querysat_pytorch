@@ -21,7 +21,7 @@ parser.add_argument("--logit-maps", type=int, default=8)
 parser.add_argument("--lr", type=float, default=2e-4)
 parser.add_argument("--learn-step", type=int, default=500_000)
 parser.add_argument("--evaluate-interval", type=int, default=10_000)
-parser.add_argument("--grad-clip", type=float, default=3.0)
+parser.add_argument("--grad-clip", type=float, default=10.0)
 parser.add_argument("--grad-alpha", type=float, default=0.8)
 
 # reproducibility

@@ -55,6 +55,7 @@ def main():
 
     # prepare model
     model = QuerySATModel(args).to(device)
+    print("[Model] Use {}".format(model.name))
     num_parameters = 0
     for p in model.parameters():
         num_parameters += p.numel()

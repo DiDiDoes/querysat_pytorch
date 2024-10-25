@@ -6,7 +6,7 @@ import torch
 from torch import optim
 from torch.utils.tensorboard import SummaryWriter
 
-from querysat_pytorch.utils.meters import AverageMeter, ProgressMeter
+from querysat_pytorch.utils.meters import AverageMeter, MaxMeter, ProgressMeter
 
 
 class Engine(object):
@@ -24,10 +24,11 @@ class Engine(object):
         # statistics
         self.counter = 0
         self.stats = {
-            # "model_step": (AverageMeter, "{:.2f}"),
+            "model_step": (AverageMeter, "{:.2f}"),
             "loss": (AverageMeter, "{:.4e}"),
-            # "last_layer_loss": (AverageMeter, "{:.4e}"),
-            "solved": (AverageMeter, "{:.4f}")
+            "last_layer_loss": (AverageMeter, "{:.4e}"),
+            "solved": (AverageMeter, "{:.4f}"),
+            "max_memory": (MaxMeter, "{:.4e}"),
         }
 
     def build_optimizer(self, args: Namespace):
@@ -51,14 +52,18 @@ class Engine(object):
             self.optimizer.load_state_dict(state_dict["optimizer_state_dict"])
 
     def run(self, data, train: bool = False) -> dict:
+        if self.device.type == "cuda":
+            torch.cuda.reset_peak_memory_stats(self.device)
+
         data = data.to(self.device)
-        loss, solveds = self.model(data)
-        # loss = torch.stack(losses).mean()
+        model_step, losses, solveds = self.model(data)
+        loss = torch.stack(losses).mean()
         stat_dict = {
-            # "model_step": model_step,
+            "model_step": model_step,
             "loss": loss.item(),
-            # "last_layer_loss": losses[-1].item(),
-            "solved": torch.stack(solveds).any(dim=0).float().mean()
+            "last_layer_loss": losses[-1].item(),
+            "solved": torch.stack(solveds).any(dim=0).float().mean(),
+            "max_memory": torch.cuda.max_memory_allocated(self.device)
         }
         if train:
             self.optimizer.zero_grad()

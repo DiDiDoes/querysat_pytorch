@@ -21,9 +21,6 @@ class ValueMeter(object):
 
 
 class AverageMeter(ValueMeter):
-    def __init__(self, name: str, fmt: str = "{}"):
-        super().__init__(name, fmt)
-
     def reset(self):
         super().reset()
         self.sum = 0
@@ -37,12 +34,19 @@ class AverageMeter(ValueMeter):
 
 
 class SumMeter(ValueMeter):
-    def __init__(self, name: str, fmt: str = "{}"):
-        super().__init__(name, fmt)
-
     def update(self, value, n: int = 1):
         super().update(value, n)
         self.result += value * n
+
+
+class MaxMeter(ValueMeter):
+    def reset(self):
+        super().reset()
+        self.result = float("-inf")
+
+    def update(self, value, n: int = 1):
+        super().update(value, n)
+        self.result = max(self.result, value)
 
 
 class ProgressMeter(object):
