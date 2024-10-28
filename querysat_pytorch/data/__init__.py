@@ -9,3 +9,7 @@ from querysat_pytorch.data.cnfgen import ThreeSATDataset, ThreeCliqueDataset, KC
 dataset_regisry.register("3sat", ThreeSATDataset)
 dataset_regisry.register("3clique", ThreeCliqueDataset)
 dataset_regisry.register("kcoloring", KColoringDataset)
+
+# SHA-1
+from querysat_pytorch.data.sha1 import SHA1Dataset
+dataset_regisry.register("sha1", SHA1Dataset)
