@@ -35,6 +35,10 @@ def main():
         train_dataloader = DataLoader(train_dataset, batch_sampler=train_sampler)
         valid_sampler = DynamicBatchSampler(valid_dataset, max_num=20_000, mode="node")
         valid_dataloader = DataLoader(valid_dataset, batch_sampler=valid_sampler)
+    elif args.command == "valid":
+        valid_dataset = dataset_cls(args, "valid")
+        valid_sampler = DynamicBatchSampler(valid_dataset, max_num=20_000, mode="node")
+        valid_dataloader = DataLoader(valid_dataset, batch_sampler=valid_sampler)
     elif args.command == "test":
         test_dataset = dataset_cls(args, "test")
         test_sampler = DynamicBatchSampler(test_dataset, max_num=20_000, mode="node")
@@ -93,6 +97,9 @@ def main():
                 engine.evaluate(valid_dataloader)
                 model.train()
         tbar.close()
+    elif args.command == "valid":
+        model.eval()
+        engine.evaluate(valid_dataloader)
     elif args.command == "test":
         model.eval()
         engine.evaluate(test_dataloader)

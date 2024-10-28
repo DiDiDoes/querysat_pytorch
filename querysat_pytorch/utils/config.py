@@ -2,7 +2,7 @@ import argparse
 from querysat_pytorch.data import dataset_regisry
 
 parser = argparse.ArgumentParser()
-parser.add_argument("command", type=str, choices=["prepare", "train", "test"])
+parser.add_argument("command", type=str, choices=["prepare", "train", "valid", "test"])
 
 # dataset
 parser.add_argument("--data-dir", type=str, default="./data")
