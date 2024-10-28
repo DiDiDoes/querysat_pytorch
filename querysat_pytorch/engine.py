@@ -33,6 +33,7 @@ class Engine(object):
 
     def build_optimizer(self, args: Namespace):
         self.optimizer = optim.Adam(self.model.parameters(), lr=args.lr)
+        self.scheduler = optim.lr_scheduler.CosineAnnealingLR(self.optimizer, args.learn_step)
 
     def build_writer(self, args: Namespace):
         self.writer = SummaryWriter(args.experiment_dir)
@@ -42,7 +43,8 @@ class Engine(object):
         return {
             "counter": self.counter,
             "model_state_dict": self.model.state_dict(),
-            "optimizer_state_dict": self.optimizer.state_dict() if self.optimizer is not None else None
+            "optimizer_state_dict": self.optimizer.state_dict() if self.optimizer is not None else None,
+            "scheduler_state_dict": self.scheduler.state_dict() if self.scheduler is not None else None
         }
 
     def load_state_dict(self, state_dict: dict) -> None:
@@ -50,6 +52,7 @@ class Engine(object):
         self.model.load_state_dict(state_dict["model_state_dict"])
         if self.optimizer is not None:
             self.optimizer.load_state_dict(state_dict["optimizer_state_dict"])
+            self.scheduler.load_state_dict(state_dict["scheduler_state_dict"])
 
     def run(self, data, train: bool = False) -> dict:
         if self.device.type == "cuda":
@@ -70,10 +73,12 @@ class Engine(object):
             loss.backward()
             grad_norm = torch.nn.utils.clip_grad_norm_(self.model.parameters(), self.grad_clip)
             self.optimizer.step()
+            self.scheduler.step()
             self.counter += 1
             if self.counter % self.record_interval == 0:
                 self.record(stat_dict, "train")
                 self.writer.add_scalar("grad_norm", grad_norm, self.counter)
+                self.writer.add_scalar("lr", self.scheduler.get_last_lr()[0], self.counter)
         return stat_dict
 
     def record(self, stat_dict: dict, suffix: str) -> None:
@@ -91,10 +96,13 @@ class Engine(object):
 
         # evaluate
         tqdm.write(progress_meter.title_str())
-        for data in tqdm(dataloader, total=float("inf")):
+        tbar = tqdm(total=len(dataloader))
+        for data in dataloader:
             stat_dict = self.run(data)
             for stat_name in self.stats.keys():
                 meter_dict[stat_name].update(stat_dict[stat_name], len(data))
+            tbar.update(len(data))
+        tbar.close()
         tqdm.write(progress_meter.summary_str())
 
         # record

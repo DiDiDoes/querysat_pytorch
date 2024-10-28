@@ -106,7 +106,7 @@ class QuerySATDecoder(nn.Module):
         polarity = graph["variable", "in", "clause"].polarity
         clauses_hard = scatter_reduce(logits_hard[variable_indices]*polarity, clause_indices, reduce="amax", dim=0, dim_size=graph["clause"].num_nodes)
         graphs_hard = scatter_reduce(clauses_hard, graph["clause"].batch, reduce="amin", dim=0, dim_size=graph.num_graphs)
-        solved = (graphs_hard > 0.5).any(dim=1)
+        solved = (graphs_hard > 0).any(dim=1)
         return logit_loss, solved
 
 
